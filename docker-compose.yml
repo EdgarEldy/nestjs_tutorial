@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: nestjs_tutorial_db
+    environment:
+      POSTGRES_USER: tutorial
+      POSTGRES_PASSWORD: tutorial
+      POSTGRES_DB: nestjs_tutorial
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U tutorial']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
