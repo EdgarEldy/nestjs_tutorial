@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  postgres_test:
+    image: postgres:16
+    container_name: nestjs_tutorial_test_db
+    environment:
+      POSTGRES_USER: tutorial
+      POSTGRES_PASSWORD: tutorial
+      POSTGRES_DB: nestjs_tutorial_test
+    ports:
+      - '5433:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
