@@ -736,6 +736,7 @@ Closes #
 - [ ] Configure `@nestjs/swagger` with Bearer auth support
 - [ ] Set up GitHub Actions `ci.yml` and `pr-checks.yml`
 - [ ] Write `README.md` initial section
+- [ ] Install TypeORM, `pg`, `@nestjs/typeorm` (infrastructure dependency, not domain logic)
 
 ### Commits
 
@@ -892,7 +893,6 @@ describe('AppModule bootstrap', () => {
 
 ### Todo List
 
-- [ ] Install TypeORM, `pg`, `@nestjs/typeorm`
 - [ ] Create `DatabaseModule` importing TypeORM with config factory
 - [ ] Create `Category` entity (`id`, `category_name`, `@OneToMany` to Product)
 - [ ] Create `Product` entity (`id`, `category_id`, `product_name`, `unit_price`, `@ManyToOne` to Category)
@@ -912,10 +912,7 @@ describe('AppModule bootstrap', () => {
 ### Commits
 
 ```
-chore(database): install TypeORM dependencies
-
-- Installs typeorm, pg, @nestjs/typeorm, and reflect-metadata.
-- Adds emitDecoratorMetadata:true to tsconfig.json.
+feat(database): create DatabaseModule with TypeORM config
 
 feat(database): create DatabaseModule with TypeORM config
 
