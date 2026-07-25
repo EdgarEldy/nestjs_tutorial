@@ -7,6 +7,7 @@ import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import { validationSchema } from './config/validation.schema';
 import { DatabaseModule } from './database/database.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { DatabaseModule } from './database/database.module';
       envFilePath: [`.env.${process.env['NODE_ENV'] ?? 'development'}`, '.env'],
     }),
     DatabaseModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
