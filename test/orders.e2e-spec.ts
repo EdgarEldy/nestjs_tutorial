@@ -6,6 +6,7 @@ import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
 import { GlobalExceptionFilter } from '../src/common/filters/global-exception.filter';
 import { TransformInterceptor } from '../src/common/interceptors/transform.interceptor';
+import { cleanupE2EAdmin, getAdminToken, seedE2EAdmin } from './shared/e2e-auth.helper';
 
 interface OrderData {
   id: number;
@@ -30,6 +31,7 @@ describe('OrdersController (e2e)', () => {
   let productId: number;
   let categoryId: number;
   let createdOrderId: number;
+  let adminToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -46,6 +48,8 @@ describe('OrdersController (e2e)', () => {
     await app.init();
 
     dataSource = app.get(DataSource);
+    await seedE2EAdmin(dataSource);
+    adminToken = await getAdminToken(app);
 
     const cat = await dataSource.query<{ id: number }[]>(
       "INSERT INTO categories (category_name) VALUES ('E2E Orders Cat') RETURNING id",
@@ -75,12 +79,14 @@ describe('OrdersController (e2e)', () => {
     await dataSource.query('DELETE FROM customers WHERE id = $1', [customerId]);
     await dataSource.query('DELETE FROM products WHERE id = $1', [productId]);
     await dataSource.query('DELETE FROM categories WHERE id = $1', [categoryId]);
+    await cleanupE2EAdmin(dataSource);
     await app.close();
   });
 
   it('POST /api/v1/orders - creates order with computed total (201)', async () => {
     const res = await request(app.getHttpServer())
       .post('/api/v1/orders')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ customerId, productId, quantity: 3 })
       .expect(201);
 
@@ -94,12 +100,16 @@ describe('OrdersController (e2e)', () => {
   it('POST /api/v1/orders - rejects unknown customer (404)', async () => {
     await request(app.getHttpServer())
       .post('/api/v1/orders')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ customerId: 999999, productId, quantity: 1 })
       .expect(404);
   });
 
   it('GET /api/v1/orders - returns paginated list (200)', async () => {
-    const res = await request(app.getHttpServer()).get('/api/v1/orders').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/orders')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
 
     const body = res.body as OrderListBody;
     expect(body.success).toBe(true);
@@ -109,11 +119,13 @@ describe('OrdersController (e2e)', () => {
   it('GET /api/v1/orders?customerId=:id - filters by customer', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/v1/orders')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ customerId, productId, quantity: 1 });
     createdOrderId = (created.body as OrderBody).data.id;
 
     const res = await request(app.getHttpServer())
       .get(`/api/v1/orders?customerId=${customerId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
 
     const body = res.body as OrderListBody;
@@ -123,11 +135,13 @@ describe('OrdersController (e2e)', () => {
   it('GET /api/v1/customers/:id/orders - returns customer orders (200)', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/v1/orders')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ customerId, productId, quantity: 2 });
     createdOrderId = (created.body as OrderBody).data.id;
 
     const res = await request(app.getHttpServer())
       .get(`/api/v1/customers/${customerId}/orders`)
+      .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
 
     const body = res.body as ApiBody<OrderData[]>;
@@ -139,11 +153,13 @@ describe('OrdersController (e2e)', () => {
   it('PUT /api/v1/orders/:id - updates and recomputes total (200)', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/v1/orders')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ customerId, productId, quantity: 1 });
     createdOrderId = (created.body as OrderBody).data.id;
 
     const res = await request(app.getHttpServer())
       .put(`/api/v1/orders/${createdOrderId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ quantity: 4 })
       .expect(200);
 
@@ -155,10 +171,17 @@ describe('OrdersController (e2e)', () => {
   it('DELETE /api/v1/orders/:id - deletes order (204)', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/v1/orders')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ customerId, productId, quantity: 1 });
     const idToDelete = (created.body as OrderBody).data.id;
 
-    await request(app.getHttpServer()).delete(`/api/v1/orders/${idToDelete}`).expect(204);
-    await request(app.getHttpServer()).get(`/api/v1/orders/${idToDelete}`).expect(404);
+    await request(app.getHttpServer())
+      .delete(`/api/v1/orders/${idToDelete}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(204);
+    await request(app.getHttpServer())
+      .get(`/api/v1/orders/${idToDelete}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(404);
   });
 });
