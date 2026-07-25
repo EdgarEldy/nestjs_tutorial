@@ -238,10 +238,11 @@ describe('AuthService', () => {
       await expect(service.getProfile(99)).rejects.toThrow(NotFoundException);
     });
 
-    it('returns user when found', async () => {
+    it('returns profile without password when user is found', async () => {
       mockRepo.findUserById.mockResolvedValue(mockUser());
       const result = await service.getProfile(1);
       expect(result.email).toBe('jane@example.com');
+      expect('password' in result).toBe(false);
     });
   });
 });

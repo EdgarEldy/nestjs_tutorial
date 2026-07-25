@@ -109,7 +109,16 @@ describe('AuthController', () => {
 
   it('getProfile calls authService.getProfile with the current user id', async () => {
     const user = mockUser();
-    mockService.getProfile.mockResolvedValue(user);
+    const profile = {
+      id: 1,
+      first_name: 'Jane',
+      last_name: 'Doe',
+      email: 'jane@example.com',
+      enabled: true,
+      account_locked: false,
+      roles: ['USER'],
+    };
+    mockService.getProfile.mockResolvedValue(profile);
     const result = await controller.getProfile(user);
     expect(result.email).toBe('jane@example.com');
     expect(mockService.getProfile).toHaveBeenCalledWith(1);
