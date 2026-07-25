@@ -6,6 +6,7 @@ import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
 import { GlobalExceptionFilter } from '../src/common/filters/global-exception.filter';
 import { TransformInterceptor } from '../src/common/interceptors/transform.interceptor';
+import { cleanupE2EAdmin, getAdminToken, seedE2EAdmin } from './shared/e2e-auth.helper';
 
 interface CustomerData {
   id: number;
@@ -36,6 +37,7 @@ describe('CustomersController (e2e)', () => {
   let app: INestApplication<App>;
   let dataSource: DataSource;
   let createdCustomerId: number;
+  let adminToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -52,6 +54,8 @@ describe('CustomersController (e2e)', () => {
     await app.init();
 
     dataSource = app.get(DataSource);
+    await seedE2EAdmin(dataSource);
+    adminToken = await getAdminToken(app);
   });
 
   afterEach(async () => {
@@ -62,12 +66,14 @@ describe('CustomersController (e2e)', () => {
   });
 
   afterAll(async () => {
+    await cleanupE2EAdmin(dataSource);
     await app.close();
   });
 
   it('POST /api/v1/customers - creates a customer (201)', async () => {
     const res = await request(app.getHttpServer())
       .post('/api/v1/customers')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send(sampleDto)
       .expect(201);
 
@@ -80,18 +86,23 @@ describe('CustomersController (e2e)', () => {
   it('POST /api/v1/customers - rejects duplicate email (409)', async () => {
     const first = await request(app.getHttpServer())
       .post('/api/v1/customers')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send(sampleDto)
       .expect(201);
     createdCustomerId = (first.body as CustomerBody).data.id;
 
     await request(app.getHttpServer())
       .post('/api/v1/customers')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ ...sampleDto, first_name: 'Dup' })
       .expect(409);
   });
 
   it('GET /api/v1/customers - returns paginated list (200)', async () => {
-    const res = await request(app.getHttpServer()).get('/api/v1/customers').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/customers')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
 
     const body = res.body as CustomerListBody;
     expect(body.success).toBe(true);
@@ -101,6 +112,7 @@ describe('CustomersController (e2e)', () => {
   it('GET /api/v1/customers?search=alice - filters by name/email', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/customers?search=alice')
+      .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
 
     const body = res.body as CustomerListBody;
@@ -115,18 +127,23 @@ describe('CustomersController (e2e)', () => {
   });
 
   it('GET /api/v1/customers/:id - returns 404 for unknown id', async () => {
-    await request(app.getHttpServer()).get('/api/v1/customers/999999').expect(404);
+    await request(app.getHttpServer())
+      .get('/api/v1/customers/999999')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(404);
   });
 
   it('PUT /api/v1/customers/:id - updates customer (200)', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/v1/customers')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send(sampleDto)
       .expect(201);
     createdCustomerId = (created.body as CustomerBody).data.id;
 
     const res = await request(app.getHttpServer())
       .put(`/api/v1/customers/${createdCustomerId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ first_name: 'Updated' })
       .expect(200);
 
@@ -136,11 +153,18 @@ describe('CustomersController (e2e)', () => {
   it('DELETE /api/v1/customers/:id - deletes customer (204)', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/v1/customers')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send(sampleDto)
       .expect(201);
     const idToDelete = (created.body as CustomerBody).data.id;
 
-    await request(app.getHttpServer()).delete(`/api/v1/customers/${idToDelete}`).expect(204);
-    await request(app.getHttpServer()).get(`/api/v1/customers/${idToDelete}`).expect(404);
+    await request(app.getHttpServer())
+      .delete(`/api/v1/customers/${idToDelete}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(204);
+    await request(app.getHttpServer())
+      .get(`/api/v1/customers/${idToDelete}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(404);
   });
 });
