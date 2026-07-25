@@ -28,7 +28,12 @@ export class CategoriesController {
 
   @Get()
   @ApiOperation({ summary: 'Get paginated list of categories' })
-  @ApiResponse({ status: 200, description: 'Paginated categories', type: CategoryResponseDto, isArray: true })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated categories',
+    type: CategoryResponseDto,
+    isArray: true,
+  })
   findAll(@Query() query: PaginationQueryDto): Promise<PageResponse<Category>> {
     return this.categoriesService.findAll(query);
   }
@@ -52,10 +57,7 @@ export class CategoriesController {
   @ApiOperation({ summary: 'Update a category' })
   @ApiResponse({ status: 200, description: 'Category updated', type: CategoryResponseDto })
   @ApiResponse({ status: 404, description: 'Category not found' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateCategoryDto,
-  ): Promise<Category> {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCategoryDto): Promise<Category> {
     return this.categoriesService.update(id, dto);
   }
 
