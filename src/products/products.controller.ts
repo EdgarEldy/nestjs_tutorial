@@ -27,7 +27,9 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get paginated list of products, with optional category filter and sort' })
+  @ApiOperation({
+    summary: 'Get paginated list of products, with optional category filter and sort',
+  })
   @ApiResponse({
     status: 200,
     description: 'Paginated products',
@@ -58,10 +60,7 @@ export class ProductsController {
   @ApiOperation({ summary: 'Update a product' })
   @ApiResponse({ status: 200, description: 'Product updated', type: ProductResponseDto })
   @ApiResponse({ status: 404, description: 'Product or category not found' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateProductDto,
-  ): Promise<Product> {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto): Promise<Product> {
     return this.productsService.update(id, dto);
   }
 
