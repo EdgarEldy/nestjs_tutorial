@@ -6,6 +6,7 @@ import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import { validationSchema } from './config/validation.schema';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { validationSchema } from './config/validation.schema';
       validationSchema,
       envFilePath: [`.env.${process.env['NODE_ENV'] ?? 'development'}`, '.env'],
     }),
+    DatabaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
