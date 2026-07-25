@@ -6,6 +6,7 @@ import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
 import { GlobalExceptionFilter } from '../src/common/filters/global-exception.filter';
 import { TransformInterceptor } from '../src/common/interceptors/transform.interceptor';
+import { cleanupE2EAdmin, getAdminToken, seedE2EAdmin } from './shared/e2e-auth.helper';
 
 interface CategoryData {
   id: number;
@@ -24,6 +25,7 @@ describe('CategoriesController (e2e)', () => {
   let app: INestApplication<App>;
   let dataSource: DataSource;
   let createdId: number;
+  let adminToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -40,6 +42,8 @@ describe('CategoriesController (e2e)', () => {
     await app.init();
 
     dataSource = app.get(DataSource);
+    await seedE2EAdmin(dataSource);
+    adminToken = await getAdminToken(app);
   });
 
   afterEach(async () => {
@@ -50,12 +54,14 @@ describe('CategoriesController (e2e)', () => {
   });
 
   afterAll(async () => {
+    await cleanupE2EAdmin(dataSource);
     await app.close();
   });
 
   it('POST /api/v1/categories - creates a category (201)', async () => {
     const res = await request(app.getHttpServer())
       .post('/api/v1/categories')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ category_name: 'E2E Test Category' })
       .expect(201);
 
@@ -68,12 +74,16 @@ describe('CategoriesController (e2e)', () => {
   it('POST /api/v1/categories - rejects empty name (400)', async () => {
     await request(app.getHttpServer())
       .post('/api/v1/categories')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ category_name: '' })
       .expect(400);
   });
 
   it('GET /api/v1/categories - returns paginated list (200)', async () => {
-    const res = await request(app.getHttpServer()).get('/api/v1/categories').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/categories')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
 
     const body = res.body as CategoryListBody;
     expect(body.success).toBe(true);
@@ -84,11 +94,13 @@ describe('CategoriesController (e2e)', () => {
   it('GET /api/v1/categories/:id - returns category (200)', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/v1/categories')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ category_name: 'Get By ID E2E' });
     createdId = (created.body as CategoryBody).data.id;
 
     const res = await request(app.getHttpServer())
       .get(`/api/v1/categories/${createdId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
 
     const body = res.body as CategoryBody;
@@ -97,17 +109,22 @@ describe('CategoriesController (e2e)', () => {
   });
 
   it('GET /api/v1/categories/:id - returns 404 for unknown id', async () => {
-    await request(app.getHttpServer()).get('/api/v1/categories/999999').expect(404);
+    await request(app.getHttpServer())
+      .get('/api/v1/categories/999999')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(404);
   });
 
   it('PUT /api/v1/categories/:id - updates category (200)', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/v1/categories')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ category_name: 'Before Update' });
     createdId = (created.body as CategoryBody).data.id;
 
     const res = await request(app.getHttpServer())
       .put(`/api/v1/categories/${createdId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ category_name: 'After Update' })
       .expect(200);
 
@@ -117,10 +134,17 @@ describe('CategoriesController (e2e)', () => {
   it('DELETE /api/v1/categories/:id - deletes category (204)', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/v1/categories')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ category_name: 'To Delete' });
     const idToDelete = (created.body as CategoryBody).data.id;
 
-    await request(app.getHttpServer()).delete(`/api/v1/categories/${idToDelete}`).expect(204);
-    await request(app.getHttpServer()).get(`/api/v1/categories/${idToDelete}`).expect(404);
+    await request(app.getHttpServer())
+      .delete(`/api/v1/categories/${idToDelete}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(204);
+    await request(app.getHttpServer())
+      .get(`/api/v1/categories/${idToDelete}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(404);
   });
 });
