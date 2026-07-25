@@ -62,7 +62,9 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       roles: [adminRole, userRole],
     });
     await userRepo.save(newAdmin);
-    console.log('Admin user created (admin@tutorial.dev) - password placeholder, update in feature/auth.');
+    console.log(
+      'Admin user created (admin@tutorial.dev) - password placeholder, update in feature/auth.',
+    );
   } else {
     console.log('Admin user already exists, skipping creation.');
   }
