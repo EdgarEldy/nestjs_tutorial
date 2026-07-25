@@ -5,7 +5,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * orders. Foreign key constraints are declared with explicit names so that the
  * down() method can drop them by name, making the migration fully reversible.
  */
-export class CreateCoreSchema1700000001 implements MigrationInterface {
+export class CreateCoreSchema1700000001000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE TABLE "categories" (
