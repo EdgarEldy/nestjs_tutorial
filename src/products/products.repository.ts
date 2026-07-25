@@ -26,7 +26,9 @@ export class ProductsRepository {
     }
 
     const sortColumn = this.resolveSortColumn(sortBy);
-    qb.orderBy(sortColumn, order ?? SortOrder.ASC).skip(skip).take(limit);
+    qb.orderBy(sortColumn, order ?? SortOrder.ASC)
+      .skip(skip)
+      .take(limit);
 
     const [items, total] = await qb.getManyAndCount();
     const totalPages = Math.ceil(total / limit);
