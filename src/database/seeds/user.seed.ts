@@ -34,7 +34,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
   const adminRole = roleRepo.create({ id: 1 });
   const userRole = roleRepo.create({ id: 2 });
 
-  // Permissions — four actions for each of the four resource domains
+  // Permissions: four actions for each of the four resource domains
   const resources = ['categories', 'products', 'customers', 'orders'];
   const actions = ['READ', 'CREATE', 'UPDATE', 'DELETE'];
   const permissions: { id: number; resource: string; action: string }[] = [];
@@ -49,7 +49,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
     skipUpdateIfNoValuesChanged: true,
   });
 
-  // Admin user — only created when the email does not already exist
+  // Admin user: only created when the email does not already exist
   const existingAdmin = await userRepo.findOne({ where: { email: 'admin@tutorial.dev' } });
   if (!existingAdmin) {
     const newAdmin = userRepo.create({
@@ -62,7 +62,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       roles: [adminRole, userRole],
     });
     await userRepo.save(newAdmin);
-    console.log('Admin user created (admin@tutorial.dev) — password placeholder, update in feature/auth.');
+    console.log('Admin user created (admin@tutorial.dev) - password placeholder, update in feature/auth.');
   } else {
     console.log('Admin user already exists, skipping creation.');
   }
