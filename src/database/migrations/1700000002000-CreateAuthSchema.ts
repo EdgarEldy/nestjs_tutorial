@@ -6,7 +6,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * token tables (activation_tokens, blacklisted_tokens, password_reset_tokens).
  * This migration depends on 1700000001-CreateCoreSchema having been run first.
  */
-export class CreateAuthSchema1700000002 implements MigrationInterface {
+export class CreateAuthSchema1700000002000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE TABLE "roles" (
