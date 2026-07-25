@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CategoriesService } from '../categories/categories.service';
 import { PageResponse } from '../common/dto/page-response.dto';
+import { Category } from '../categories/entities/category.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductFilterDto } from './dto/product-filter.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -31,7 +32,7 @@ export class ProductsService {
     return this.productsRepository.save({
       product_name: dto.product_name,
       unit_price: dto.unit_price,
-      category: { id: dto.categoryId },
+      category: { id: dto.categoryId } as Category,
     });
   }
 
@@ -40,12 +41,11 @@ export class ProductsService {
     if (dto.categoryId !== undefined) {
       await this.categoriesService.findOne(dto.categoryId);
     }
-    return this.productsRepository.save({
-      ...product,
-      ...(dto.product_name !== undefined && { product_name: dto.product_name }),
-      ...(dto.unit_price !== undefined && { unit_price: dto.unit_price }),
-      ...(dto.categoryId !== undefined && { category: { id: dto.categoryId } }),
-    });
+    const updates: Partial<Product> = {};
+    if (dto.product_name !== undefined) updates.product_name = dto.product_name;
+    if (dto.unit_price !== undefined) updates.unit_price = dto.unit_price;
+    if (dto.categoryId !== undefined) updates.category = { id: dto.categoryId } as Category;
+    return this.productsRepository.save({ ...product, ...updates });
   }
 
   async remove(id: number): Promise<void> {
