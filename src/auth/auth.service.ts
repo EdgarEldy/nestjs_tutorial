@@ -12,6 +12,7 @@ import type { AuthResponseDto } from './dto/auth-response.dto';
 import type { ForgotPasswordDto } from './dto/forgot-password.dto';
 import type { RegisterDto } from './dto/register.dto';
 import type { ResetPasswordDto } from './dto/reset-password.dto';
+import type { UserProfileDto } from './dto/user-profile.dto';
 import type { User } from './entities/user.entity';
 import type { JwtPayload } from './interfaces/jwt-payload.interface';
 import { AuthRepository } from './auth.repository';
@@ -151,11 +152,19 @@ export class AuthService {
     return { message: 'Password reset successfully' };
   }
 
-  async getProfile(userId: number): Promise<User> {
+  async getProfile(userId: number): Promise<UserProfileDto> {
     const user = await this.authRepository.findUserById(userId);
     if (!user) {
       throw new NotFoundException(`User #${userId} not found`);
     }
-    return user;
+    return {
+      id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      enabled: user.enabled,
+      account_locked: user.account_locked,
+      roles: user.roles?.map((r) => r.role_name) ?? [],
+    };
   }
 }

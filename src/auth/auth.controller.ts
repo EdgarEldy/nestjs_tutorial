@@ -19,6 +19,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UserProfileDto } from './dto/user-profile.dto';
 import type { User } from './entities/user.entity';
 import type { JwtPayload } from './interfaces/jwt-payload.interface';
 
@@ -97,8 +98,8 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current authenticated user profile' })
-  @ApiResponse({ status: 200, description: 'Current user profile' })
-  getProfile(@CurrentUser() user: User): Promise<User> {
+  @ApiResponse({ status: 200, type: UserProfileDto, description: 'Current user profile' })
+  getProfile(@CurrentUser() user: User): Promise<UserProfileDto> {
     return this.authService.getProfile(user.id);
   }
 
