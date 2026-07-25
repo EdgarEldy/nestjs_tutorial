@@ -24,7 +24,7 @@ export class BlacklistedToken {
    * jti is the JWT ID claim (UUID). Indexed and unique so the JwtStrategy can
    * perform a fast blacklist check on every authenticated request.
    */
-  @Column({ length: 255, nullable: true, unique: true })
+  @Column({ type: 'varchar', length: 255, nullable: true, unique: true })
   jti: string | null;
 
   @Column({ type: 'timestamptz', nullable: true })
