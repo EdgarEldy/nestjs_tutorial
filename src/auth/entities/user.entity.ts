@@ -23,7 +23,7 @@ export class User {
 
   /**
    * password is nullable because OAuth/SSO users may not have a local password.
-   * It stores a bcrypt hash — never plaintext.
+   * It stores a bcrypt hash, never plaintext.
    */
   @Column({ type: 'varchar', length: 255, nullable: true })
   password: string | null;
