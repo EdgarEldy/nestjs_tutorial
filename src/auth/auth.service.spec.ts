@@ -165,6 +165,17 @@ describe('AuthService', () => {
       await expect(service.activateAccount('tok')).rejects.toThrow(BadRequestException);
     });
 
+    it('throws BadRequestException when activation token is expired', async () => {
+      mockRepo.findActivationToken.mockResolvedValue({
+        id: 1,
+        token: 'expired-tok',
+        validated_at: null,
+        expires_at: new Date(Date.now() - 1000),
+        user: mockUser({ enabled: false }),
+      });
+      await expect(service.activateAccount('expired-tok')).rejects.toThrow(BadRequestException);
+    });
+
     it('activates the account on valid token', async () => {
       const futureDate = new Date(Date.now() + 3600000);
       mockRepo.findActivationToken.mockResolvedValue({
