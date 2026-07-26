@@ -124,6 +124,13 @@ describe('CustomersService', () => {
       );
     });
 
+    it('updates email when new address is not taken', async () => {
+      mockRepo.findByEmail.mockResolvedValue(null);
+      await service.update(1, { email: 'new@example.com' });
+      expect(mockRepo.findByEmail).toHaveBeenCalledWith('new@example.com');
+      expect(mockRepo.save).toHaveBeenCalled();
+    });
+
     it('throws NotFoundException for unknown customer id', async () => {
       mockRepo.findOneById.mockResolvedValue(null);
       await expect(service.update(999, {})).rejects.toThrow(NotFoundException);
