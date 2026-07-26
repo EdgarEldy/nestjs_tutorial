@@ -89,6 +89,16 @@ describe('AuthController', () => {
     expect(mockService.logout).toHaveBeenCalledWith('test-jti', fakeJwt);
   });
 
+  it('logout falls back to user.id when extractJti cannot parse the token', async () => {
+    mockService.logout.mockResolvedValue({ message: 'Logged out successfully' });
+    const result = await controller.logout(
+      { user: mockUser(), headers: { authorization: 'Bearer not.a.valid.jwt' } },
+      mockUser(),
+    );
+    expect(result.message).toContain('Logged out');
+    expect(mockService.logout).toHaveBeenCalledWith('1', 'not.a.valid.jwt');
+  });
+
   it('activateAccount calls authService.activateAccount', async () => {
     mockService.activateAccount.mockResolvedValue({ message: 'Account activated successfully' });
     const result = await controller.activateAccount({ token: 'some-token' });
