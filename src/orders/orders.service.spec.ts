@@ -155,6 +155,13 @@ describe('OrdersService', () => {
       );
     });
 
+    it('re-fetches customer and product when ids are provided in dto', async () => {
+      const dto = { customerId: 2, productId: 2, quantity: 1 };
+      await service.update(1, dto);
+      expect(mockCustomersService.findOne).toHaveBeenCalledWith(2);
+      expect(mockProductsService.findOne).toHaveBeenCalledWith(2);
+    });
+
     it('throws NotFoundException for unknown order id', async () => {
       mockRepo.findOneById.mockResolvedValue(null);
       await expect(service.update(999, {})).rejects.toThrow(NotFoundException);
