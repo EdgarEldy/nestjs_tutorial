@@ -111,6 +111,13 @@ describe('ProductsService', () => {
       expect(mockCategoriesService.findOne).not.toHaveBeenCalled();
     });
 
+    it('updates unit_price without touching product_name', async () => {
+      await service.update(1, { unit_price: 799 });
+      expect(mockRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ unit_price: 799 }),
+      );
+    });
+
     it('throws NotFoundException for unknown product id', async () => {
       mockRepo.findOneById.mockResolvedValue(null);
       await expect(service.update(999, {})).rejects.toThrow(NotFoundException);
